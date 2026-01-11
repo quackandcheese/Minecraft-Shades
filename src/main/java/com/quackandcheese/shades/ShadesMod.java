@@ -1,5 +1,11 @@
 package com.quackandcheese.shades;
 
+import com.quackandcheese.shades.entity.ModEntities;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -42,6 +48,8 @@ public class ShadesMod {
         // Note that this is necessary if and only if we want *this* class (shades) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
+
+        ModEntities.register(modEventBus);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
