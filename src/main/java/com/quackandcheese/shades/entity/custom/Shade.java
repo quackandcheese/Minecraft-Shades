@@ -1,6 +1,7 @@
 package com.quackandcheese.shades.entity.custom;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -19,6 +20,7 @@ import net.minecraft.world.entity.ai.goal.target.TargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Vex;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -32,7 +34,8 @@ import java.util.function.Predicate;
 public class Shade extends Monster implements TraceableEntity, IEntityWithComplexSpawn {
     public static final String NAME = "shade";
 
-    UUID associatedPlayer;
+    private UUID associatedPlayer;
+    private ListTag storedInventory;
 
 //    public static final EntityDataAccessor<Optional<UUID>> ASSOCIATED_PLAYER =
 //            SynchedEntityData.defineId(
@@ -75,16 +78,31 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putUUID("AssociatedPlayer", associatedPlayer);
+        compound.put("StoredInventory", storedInventory);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         associatedPlayer = compound.getUUID("AssociatedPlayer");
+        storedInventory = compound.getList("StoredInventory", CompoundTag.TAG_COMPOUND);
+    }
+
+
+    public UUID getAssociatedPlayer() {
+        return associatedPlayer;
     }
 
     public void setAssociatedPlayer(UUID playerUUID) {
-        associatedPlayer = playerUUID;
+        this.associatedPlayer = playerUUID;
+    }
+
+    public ListTag getStoredInventory() {
+        return this.storedInventory;
+    }
+
+    public void setStoredInventory(ListTag inventoryNBT) {
+        this.storedInventory = inventoryNBT;
     }
 
     @Override
@@ -118,6 +136,15 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
     }
 
     @Override
+    public void die(DamageSource damageSource) {
+        // drop all items
+        super.die(damageSource);
+        if (damageSource.getEntity() instanceof Player player && isAssociatedPlayer(player)) {
+            player.getInventory().load(storedInventory);
+        }
+    }
+
+    @Override
     public @Nullable Entity getOwner() {
         return level().getPlayerByUUID(associatedPlayer);
     }
@@ -127,6 +154,8 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
     }
 
     private boolean isAssociatedPlayer(LivingEntity entity) {
+        if (entity == null)
+            return false;
         return associatedPlayer.equals(entity.getUUID());
     }
 
