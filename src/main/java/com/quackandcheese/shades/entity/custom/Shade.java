@@ -1,5 +1,6 @@
 package com.quackandcheese.shades.entity.custom;
 
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -22,6 +23,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
@@ -107,10 +109,10 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     @Override
     public void tick() {
+        this.setNoGravity(true);
         this.noPhysics = true;
         super.tick();
         this.noPhysics = false;
-        this.setNoGravity(true);
     }
 
     @Override
@@ -138,10 +140,22 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
     @Override
     public void die(DamageSource damageSource) {
         // drop all items
-        super.die(damageSource);
         if (damageSource.getEntity() instanceof Player player && isAssociatedPlayer(player)) {
-            player.getInventory().load(storedInventory);
+            //player.getInventory().load(storedInventory);
+            getItemsFromStoredInventory(storedInventory).forEach(this::spawnAtLocation);
         }
+        super.die(damageSource);
+    }
+
+    public NonNullList<ItemStack> getItemsFromStoredInventory(ListTag inventoryNBT) {
+        NonNullList<ItemStack> result = NonNullList.withSize(41, ItemStack.EMPTY);
+        for (int i = 0; i < inventoryNBT.size(); i++) {
+            int index = i;
+            ItemStack.parse(registryAccess(), inventoryNBT.getCompound(i)).ifPresent(itemStack -> {
+                result.set(index, itemStack);
+            });
+        }
+        return result;
     }
 
     @Override
