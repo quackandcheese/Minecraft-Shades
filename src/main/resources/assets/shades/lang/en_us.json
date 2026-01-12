@@ -1,6 +1,6 @@
 {
   "entity.shades.shade": "Shade",
-
+  "entity.shades.shade.named": "Shade of %s",
   "shades.configuration.title": "Shades Configs",
   "shades.configuration.section.shades.common.toml": "Common Options",
   "shades.configuration.section.shades.common.toml.title": "Common Options",

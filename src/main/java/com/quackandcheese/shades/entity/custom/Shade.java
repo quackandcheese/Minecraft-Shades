@@ -10,6 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -70,6 +71,32 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
                 .add(Attributes.FOLLOW_RANGE, 10d);
     }
 
+    public void setAssociatedPlayer(UUID playerUUID) {
+        this.associatedPlayer = playerUUID;
+    }
+
+    public void setStoredInventory(ListTag inventoryNBT) {
+        this.storedInventory = inventoryNBT;
+    }
+
+    public void setStoredExperience(int experiencePoints) {
+        this.storedExperience = experiencePoints;
+    }
+
+    private void updateName() {
+        Entity owner = getOwner();
+        if (owner instanceof Player player) {
+            setCustomName(
+                    Component.translatable(
+                            "entity.shades.shade.named",
+                            player.getName()
+                    )
+            );
+
+            setCustomNameVisible(false);
+        }
+    }
+
     @Override
     protected boolean shouldDespawnInPeaceful() {
         return !Config.SPAWN_SHADES_IN_PEACEFUL.get();
@@ -98,6 +125,8 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         } else {
             storedInventory = new ListTag();
         }
+
+        updateName();
     }
 
     @Override
@@ -116,21 +145,6 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         storedInventory = compound.getList("StoredInventory", CompoundTag.TAG_COMPOUND);
         storedExperience = compound.getInt("StoredExperience");
         ShadesMod.LOGGER.info("---- readAdditionalSaveData");
-    }
-
-    public void setAssociatedPlayer(UUID playerUUID) {
-        this.associatedPlayer = playerUUID;
-        ShadesMod.LOGGER.info("---- setAssociatedPlayer");
-    }
-
-    public void setStoredInventory(ListTag inventoryNBT) {
-        this.storedInventory = inventoryNBT;
-        ShadesMod.LOGGER.info("---- setStoredInventory");
-    }
-
-    public void setStoredExperience(int experiencePoints) {
-        this.storedExperience = experiencePoints;
-        ShadesMod.LOGGER.info("---- setStoredExperience");
     }
 
     @Override
