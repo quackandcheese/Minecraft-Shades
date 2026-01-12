@@ -50,6 +50,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
     public Shade(EntityType<? extends Shade> entityType, Level level) {
         super(entityType, level);
         this.moveControl = new Shade.ShadeMoveControl(this);
+        setPersistenceRequired();
     }
 
     @Override
@@ -66,6 +67,11 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
                 .add(Attributes.MAX_HEALTH, 14d)
                 .add(Attributes.ATTACK_DAMAGE, 4d)
                 .add(Attributes.FOLLOW_RANGE, 10d);
+    }
+
+    @Override
+    protected boolean shouldDespawnInPeaceful() {
+        return false;
     }
 
     @Override
