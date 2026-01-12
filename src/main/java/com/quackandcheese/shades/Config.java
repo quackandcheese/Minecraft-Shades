@@ -1,9 +1,5 @@
 package com.quackandcheese.shades;
 
-import java.util.List;
-
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class Config {
@@ -12,6 +8,10 @@ public class Config {
     public static final ModConfigSpec.BooleanValue ALLOW_MULTIPLE_SHADES = BUILDER
             .comment("If enabled, instead of a new shade replacing the old, Shades will not disappear until slain.")
             .define("allowMultipleShades", false);
+
+    public static final ModConfigSpec.BooleanValue DROP_ITEMS_FROM_REPLACED_SHADE = BUILDER
+            .comment("If enabled, when a shade is replaced with a new shade (the player dies before killing their shade), the items are dropped at the location of the old shade instead of getting permanently destroyed.")
+            .define("dropItemsFromReplacedShade", true);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 }

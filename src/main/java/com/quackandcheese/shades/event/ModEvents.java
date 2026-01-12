@@ -1,27 +1,21 @@
 package com.quackandcheese.shades.event;
 
+import com.quackandcheese.shades.Config;
 import com.quackandcheese.shades.ShadesMod;
 import com.quackandcheese.shades.data.ModDataAttachments;
 import com.quackandcheese.shades.entity.ModEntities;
 import com.quackandcheese.shades.entity.custom.Shade;
 import com.quackandcheese.shades.util.ShadeUtils;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameRules;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityInvulnerabilityCheckEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @EventBusSubscriber(modid = ShadesMod.MOD_ID)
 public class ModEvents {
@@ -37,9 +31,11 @@ public class ModEvents {
 
         // If a shade already exists, remove or replace it
         attachment.shadeUuid().ifPresent(uuid -> {
-            Entity e = level.getEntity(uuid);
-            if (e != null) {
-                e.discard();
+            Shade oldShade = ShadeUtils.getShade(player);
+            if (oldShade != null && !Config.ALLOW_MULTIPLE_SHADES.get()) {
+                if (Config.DROP_ITEMS_FROM_REPLACED_SHADE.get())
+                    oldShade.dropAllItems();
+                oldShade.discard();
             }
         });
 

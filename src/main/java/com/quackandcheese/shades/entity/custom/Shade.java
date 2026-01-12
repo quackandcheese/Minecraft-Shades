@@ -5,6 +5,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -12,7 +13,9 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
-import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -22,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class Shade extends Monster implements TraceableEntity, IEntityWithComplexSpawn {
@@ -130,15 +134,26 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     @Override
     public void die(DamageSource damageSource) {
-        // drop all items
-        if (damageSource.getEntity() instanceof Player player && isAssociatedPlayer(player)) {
-            //player.getInventory().load(storedInventory);
-            getItemsFromStoredInventory(storedInventory).forEach(this::spawnAtLocation); // drop all items in shade
-
-            player.setData(ModDataAttachments.SHADE, ModDataAttachments.ShadeAttachment.EMPTY); // set shade to empty in player
-        }
-
         super.die(damageSource);
+        Optional<Entity> owner = Optional.ofNullable(getOwner());
+        if (owner.isEmpty())
+            return;
+        Optional<UUID> shadeUUID = owner.get().getData(ModDataAttachments.SHADE).shadeUuid();
+        if (shadeUUID.isPresent() && shadeUUID.get().equals(associatedPlayer)) {
+            owner.get().setData(ModDataAttachments.SHADE, ModDataAttachments.ShadeAttachment.EMPTY); // set shade to empty in player
+        }
+    }
+
+    @Override
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
+        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
+
+        //player.getInventory().load(storedInventory);
+        dropAllItems();
+    }
+
+    public void dropAllItems() {
+        getItemsFromStoredInventory(storedInventory).forEach(this::spawnAtLocation); // drop all items in shade
     }
 
     public NonNullList<ItemStack> getItemsFromStoredInventory(ListTag inventoryNBT) {

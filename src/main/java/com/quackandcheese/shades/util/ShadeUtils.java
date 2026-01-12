@@ -2,7 +2,6 @@ package com.quackandcheese.shades.util;
 
 import com.quackandcheese.shades.data.ModDataAttachments;
 import com.quackandcheese.shades.entity.custom.Shade;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 
