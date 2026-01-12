@@ -9,6 +9,7 @@ import com.quackandcheese.shades.util.ShadeUtils;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.GameRules;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -84,6 +85,7 @@ public class ModEvents {
         if (!(player.level() instanceof ServerLevel level)) return Optional.empty();
         if (level.isClientSide()) return Optional.empty();
         if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return Optional.empty(); // shades don't make sense if you have keep inventory on...
+        if (level.getDifficulty() == Difficulty.PEACEFUL && !Config.SPAWN_SHADES_IN_PEACEFUL.get()) return Optional.empty();
 
         return Optional.of(new ShadeContext(player, level));
     }

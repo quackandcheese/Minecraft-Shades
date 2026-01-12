@@ -13,6 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
@@ -71,7 +72,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     @Override
     protected boolean shouldDespawnInPeaceful() {
-        return false;
+        return !Config.SPAWN_SHADES_IN_PEACEFUL.get();
     }
 
     @Override
@@ -117,18 +118,9 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         ShadesMod.LOGGER.info("---- readAdditionalSaveData");
     }
 
-
-    public UUID getAssociatedPlayer() {
-        return associatedPlayer;
-    }
-
     public void setAssociatedPlayer(UUID playerUUID) {
         this.associatedPlayer = playerUUID;
         ShadesMod.LOGGER.info("---- setAssociatedPlayer");
-    }
-
-    public ListTag getStoredInventory() {
-        return this.storedInventory;
     }
 
     public void setStoredInventory(ListTag inventoryNBT) {
@@ -217,6 +209,13 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
             makeDeathParticles();
     }
 
+    @Override
+    public void checkDespawn() {
+        super.checkDespawn();
+        if (this.level().getDifficulty() == Difficulty.PEACEFUL && this.shouldDespawnInPeaceful()) {
+            dropAllItems();
+        }
+    }
 
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {

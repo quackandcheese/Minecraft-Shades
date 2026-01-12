@@ -17,5 +17,9 @@ public class Config {
             .comment("If enabled, the 'owner', a.k.a. whoever died, are the only thing that can damage their shade. If disabled, anything and anyone can damage a shade.")
             .define("onlyOwnerCanDamageShade", true);
 
+    public static final ModConfigSpec.BooleanValue SPAWN_SHADES_IN_PEACEFUL = BUILDER
+            .comment("If enabled, shades will be enabled in peaceful mode.")
+            .define("spawnShadesInPeaceful", false);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }
