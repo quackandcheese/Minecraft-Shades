@@ -1,13 +1,10 @@
 package com.quackandcheese.shades.entity.custom;
 
+import com.quackandcheese.shades.data.ModDataAttachments;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -17,11 +14,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.TargetGoal;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.monster.Vex;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -29,9 +22,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 public class Shade extends Monster implements TraceableEntity, IEntityWithComplexSpawn {
     public static final String NAME = "shade";
@@ -142,8 +133,11 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         // drop all items
         if (damageSource.getEntity() instanceof Player player && isAssociatedPlayer(player)) {
             //player.getInventory().load(storedInventory);
-            getItemsFromStoredInventory(storedInventory).forEach(this::spawnAtLocation);
+            getItemsFromStoredInventory(storedInventory).forEach(this::spawnAtLocation); // drop all items in shade
+
+            player.setData(ModDataAttachments.SHADE, ModDataAttachments.ShadeAttachment.EMPTY); // set shade to empty in player
         }
+
         super.die(damageSource);
     }
 

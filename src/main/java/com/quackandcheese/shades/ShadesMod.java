@@ -1,5 +1,6 @@
 package com.quackandcheese.shades;
 
+import com.quackandcheese.shades.data.ModDataAttachments;
 import com.quackandcheese.shades.entity.ModEntities;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -50,6 +51,7 @@ public class ShadesMod {
         NeoForge.EVENT_BUS.register(this);
 
         ModEntities.register(modEventBus);
+        ModDataAttachments.register(modEventBus);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
