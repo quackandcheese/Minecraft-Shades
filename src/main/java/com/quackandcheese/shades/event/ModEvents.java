@@ -25,62 +25,67 @@ public class ModEvents {
 
     @SubscribeEvent
     public static void onLivingDeathEvent(LivingDeathEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!(player.level() instanceof ServerLevel level)) return;
-        if (level.isClientSide()) return;
-        if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
+        shadeContext(event).ifPresent(ctx -> {
+            ServerPlayer player = ctx.player();
+            ServerLevel level = ctx.level();
 
-        var attachment = player.getData(ModDataAttachments.SHADE);
+            var attachment = player.getData(ModDataAttachments.SHADE);
 
-        // If a shade already exists, remove or replace it
-        attachment.shadeUuid().ifPresent(uuid -> {
-            Shade oldShade = ShadeUtils.getShade(player);
-            if (oldShade != null && !Config.ALLOW_MULTIPLE_SHADES.get()) {
-                if (Config.DROP_ITEMS_FROM_REPLACED_SHADE.get())
-                    oldShade.dropAllItems();
-                oldShade.discard();
+            attachment.shadeUuid().ifPresent(uuid -> {
+                Shade oldShade = ShadeUtils.getShade(player);
+                if (oldShade != null && !Config.ALLOW_MULTIPLE_SHADES.get()) {
+                    if (Config.DROP_ITEMS_FROM_REPLACED_SHADE.get())
+                        oldShade.dropAllItems();
+                    oldShade.discard();
+                }
+            });
+
+            Shade shade = ModEntities.SHADE.get().create(level);
+            if (shade != null) {
+                shade.moveTo(player.position().x, player.position().y + 0.5d, player.position().z);
+                shade.setAssociatedPlayer(player.getUUID());
+                shade.setStoredInventory(player.getInventory().save(new ListTag()));
+                level.addFreshEntity(shade);
+
+                player.setData(
+                        ModDataAttachments.SHADE,
+                        new ModDataAttachments.ShadeAttachment(Optional.of(shade.getUUID()))
+                );
             }
         });
-
-        // died, summon shade.
-        Shade shade = ModEntities.SHADE.get().create(level);
-        if (shade != null) {
-            shade.moveTo(player.position().x, player.position().y + 0.5d, player.position().z);
-            shade.setAssociatedPlayer(player.getUUID());
-            shade.setStoredInventory(player.getInventory().save(new ListTag()));
-            level.addFreshEntity(shade);
-
-            player.setData(
-                    ModDataAttachments.SHADE,
-                    new ModDataAttachments.ShadeAttachment(Optional.of(shade.getUUID()))
-            );
-        }
     }
 
     @SubscribeEvent
     public static void onPlayerDrops(LivingDropsEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!(player.level() instanceof ServerLevel level)) return;
-        if (level.isClientSide()) return;
-        if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
-
-        if (ShadeUtils.getShade(player) != null) { // only cancel drops if shade is CONFIRMED to be spawned in, in case something goes awry
-            event.setCanceled(true);
-        }
+        shadeContext(event).ifPresent(ctx -> {
+            ServerPlayer player = ctx.player();
+            if (ShadeUtils.getShade(player) != null) { // only cancel drops if shade is CONFIRMED to be spawned in, in case something goes awry
+                event.setCanceled(true);
+            }
+        });
     }
 
     @SubscribeEvent
     public static void onPlayerDropExperience(LivingExperienceDropEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (!(player.level() instanceof ServerLevel level)) return;
-        if (level.isClientSide()) return;
-        if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
+        shadeContext(event).ifPresent(ctx -> {
+            ServerPlayer player = ctx.player();
+            Shade shade = ShadeUtils.getShade(player);
+            if (shade != null) {
+                shade.setStoredExperience(event.getOriginalExperience());
+                event.setCanceled(true);
+                ShadesMod.LOGGER.info("Storing experience in shade: {}", event.getOriginalExperience());
+            }
+        });
+    }
 
-        Shade shade = ShadeUtils.getShade(player);
-        if (shade != null) {
-            shade.setStoredExperience(event.getOriginalExperience());
-            ShadesMod.LOGGER.info("Storing experience in shade: {}", event.getOriginalExperience());
-            event.setCanceled(true);
-        }
+    public record ShadeContext(ServerPlayer player, ServerLevel level) {}
+
+    private static Optional<ShadeContext> shadeContext(EntityEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return Optional.empty();
+        if (!(player.level() instanceof ServerLevel level)) return Optional.empty();
+        if (level.isClientSide()) return Optional.empty();
+        if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return Optional.empty(); // shades don't make sense if you have keep inventory on...
+
+        return Optional.of(new ShadeContext(player, level));
     }
 }
