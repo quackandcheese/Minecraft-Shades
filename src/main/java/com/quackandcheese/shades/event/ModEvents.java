@@ -10,10 +10,13 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameRules;
+import net.neoforged.bus.api.Event;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.EntityEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 
 import java.util.Optional;
 
@@ -62,6 +65,21 @@ public class ModEvents {
         if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
 
         if (ShadeUtils.getShade(player) != null) { // only cancel drops if shade is CONFIRMED to be spawned in, in case something goes awry
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerDropExperience(LivingExperienceDropEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (!(player.level() instanceof ServerLevel level)) return;
+        if (level.isClientSide()) return;
+        if (level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY)) return;
+
+        Shade shade = ShadeUtils.getShade(player);
+        if (shade != null) {
+            shade.setStoredExperience(event.getOriginalExperience());
+            ShadesMod.LOGGER.info("Storing experience in shade: {}", event.getOriginalExperience());
             event.setCanceled(true);
         }
     }

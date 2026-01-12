@@ -1,6 +1,7 @@
 package com.quackandcheese.shades.entity.custom;
 
 import com.quackandcheese.shades.Config;
+import com.quackandcheese.shades.ShadesMod;
 import com.quackandcheese.shades.data.ModDataAttachments;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -35,6 +36,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     private UUID associatedPlayer;
     private ListTag storedInventory;
+    private int storedExperience;
 
 //    public static final EntityDataAccessor<Optional<UUID>> ASSOCIATED_PLAYER =
 //            SynchedEntityData.defineId(
@@ -65,12 +67,15 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     @Override
     public void writeSpawnData(RegistryFriendlyByteBuf buf) {
+        // TODO: figure out how to sync stored inventory
         buf.writeUUID(associatedPlayer);
+        buf.writeInt(storedExperience);
     }
 
     @Override
     public void readSpawnData(RegistryFriendlyByteBuf buf) {
         associatedPlayer = buf.readUUID();
+        storedExperience = buf.readInt();
     }
 
     @Override
@@ -78,6 +83,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         super.addAdditionalSaveData(compound);
         compound.putUUID("AssociatedPlayer", associatedPlayer);
         compound.put("StoredInventory", storedInventory);
+        compound.putInt("StoredExperience", storedExperience);
     }
 
     @Override
@@ -85,6 +91,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         super.readAdditionalSaveData(compound);
         associatedPlayer = compound.getUUID("AssociatedPlayer");
         storedInventory = compound.getList("StoredInventory", CompoundTag.TAG_COMPOUND);
+        storedExperience = compound.getInt("StoredExperience");
     }
 
 
@@ -102,6 +109,10 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     public void setStoredInventory(ListTag inventoryNBT) {
         this.storedInventory = inventoryNBT;
+    }
+
+    public void setStoredExperience(int experiencePoints) {
+        this.storedExperience = experiencePoints;
     }
 
     @Override
@@ -143,14 +154,33 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
-        Optional<Entity> owner = Optional.ofNullable(getOwner());
-        if (owner.isEmpty())
+
+        Entity owner = getOwner();
+        if (owner == null) {
             return;
-        Optional<UUID> shadeUUID = owner.get().getData(ModDataAttachments.SHADE).shadeUuid();
-        if (shadeUUID.isPresent() && shadeUUID.get().equals(associatedPlayer)) {
-            owner.get().setData(ModDataAttachments.SHADE, ModDataAttachments.ShadeAttachment.EMPTY); // set shade to empty in player
+        }
+
+        Optional<UUID> shadeUuid = owner
+                .getData(ModDataAttachments.SHADE)
+                .shadeUuid();
+
+        if (shadeUuid.isEmpty() || !shadeUuid.get().equals(getUUID())) {
+            return;
+        }
+
+        // Clear the shade from the owner
+        owner.setData(
+                ModDataAttachments.SHADE,
+                ModDataAttachments.ShadeAttachment.EMPTY
+        );
+
+        // Refund stored XP if the owner is a player
+        if (owner instanceof ServerPlayer player) {
+            ShadesMod.LOGGER.info("RESTORING EXPERIENCE");
+            player.giveExperienceLevels(storedExperience);
         }
     }
+
 
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
@@ -158,6 +188,11 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
         //player.getInventory().load(storedInventory);
         dropAllItems();
+    }
+
+    @Override
+    public boolean shouldDropExperience() {
+        return false;
     }
 
     public void dropAllItems() {
@@ -192,7 +227,6 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     class FlyChaseAttackGoal extends Goal {
         private int ticksUntilNextAttack;
-        private final int attackInterval = 20;
 
         @Override
         public boolean canUse() {
@@ -249,7 +283,8 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         }
 
         protected void resetAttackCooldown() {
-            this.ticksUntilNextAttack = this.adjustedTickDelay(20);
+            int attackInterval = 20;
+            this.ticksUntilNextAttack = this.adjustedTickDelay(attackInterval);
         }
 
         protected boolean isTimeToAttack() {
