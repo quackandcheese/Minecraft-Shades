@@ -3,7 +3,9 @@ package com.quackandcheese.shades.entity.custom;
 import com.quackandcheese.shades.Config;
 import com.quackandcheese.shades.ShadesMod;
 import com.quackandcheese.shades.data.ModDataAttachments;
+import com.quackandcheese.shades.particle.ModParticles;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -70,12 +72,14 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         // TODO: figure out how to sync stored inventory
         buf.writeUUID(associatedPlayer);
         buf.writeInt(storedExperience);
+        ShadesMod.LOGGER.info("---- writeSpawnData");
     }
 
     @Override
     public void readSpawnData(RegistryFriendlyByteBuf buf) {
         associatedPlayer = buf.readUUID();
         storedExperience = buf.readInt();
+        ShadesMod.LOGGER.info("---- readSpawnData");
     }
 
     @Override
@@ -84,6 +88,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         compound.putUUID("AssociatedPlayer", associatedPlayer);
         compound.put("StoredInventory", storedInventory);
         compound.putInt("StoredExperience", storedExperience);
+        ShadesMod.LOGGER.info("---- addAdditionalSaveData");
     }
 
     @Override
@@ -92,6 +97,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         associatedPlayer = compound.getUUID("AssociatedPlayer");
         storedInventory = compound.getList("StoredInventory", CompoundTag.TAG_COMPOUND);
         storedExperience = compound.getInt("StoredExperience");
+        ShadesMod.LOGGER.info("---- readAdditionalSaveData");
     }
 
 
@@ -101,6 +107,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     public void setAssociatedPlayer(UUID playerUUID) {
         this.associatedPlayer = playerUUID;
+        ShadesMod.LOGGER.info("---- setAssociatedPlayer");
     }
 
     public ListTag getStoredInventory() {
@@ -109,10 +116,12 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     public void setStoredInventory(ListTag inventoryNBT) {
         this.storedInventory = inventoryNBT;
+        ShadesMod.LOGGER.info("---- setStoredInventory");
     }
 
     public void setStoredExperience(int experiencePoints) {
         this.storedExperience = experiencePoints;
+        ShadesMod.LOGGER.info("---- setStoredExperience");
     }
 
     @Override
@@ -127,6 +136,13 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
     public void move(MoverType type, Vec3 pos) {
         super.move(type, pos);
         this.checkInsideBlocks();
+    }
+
+    @Override
+    public void aiStep() {
+        this.level().addParticle(ModParticles.SHADE_PARTICLE.get(), this.getRandomX(0.5), this.getRandomY(), this.getRandomZ(0.5), 0.0, 0.0, 0.0);
+
+        super.aiStep();
     }
 
     @Override
@@ -179,6 +195,9 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
             ShadesMod.LOGGER.info("RESTORING EXPERIENCE");
             player.giveExperienceLevels(storedExperience);
         }
+
+        if (level() instanceof ServerLevel)
+            makeDeathParticles();
     }
 
 
@@ -208,6 +227,18 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
             });
         }
         return result;
+    }
+
+    private void makeDeathParticles() {
+        ((ServerLevel) level()).sendParticles(
+                ModParticles.SHADE_PARTICLE.get(),
+                this.getRandomX(1),
+                this.getRandomY(),
+                this.getRandomZ(1),
+                100,
+                0.5, 0.5, 0.5,
+                2
+        );
     }
 
     @Override

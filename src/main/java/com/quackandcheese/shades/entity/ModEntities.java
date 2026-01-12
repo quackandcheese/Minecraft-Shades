@@ -19,13 +19,11 @@ public class ModEntities {
         ShadesMod.MOD_ID
     );
 
-    public static ResourceKey<EntityType<?>> SHADE_KEY = ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.withDefaultNamespace(Shade.NAME));
-
     public static final Supplier<EntityType<Shade>> SHADE = ENTITY_TYPES.register(Shade.NAME, () -> EntityType.Builder.of(Shade::new, MobCategory.MONSTER)
             .sized(0.6F, 1.8F)
             .eyeHeight(1.62F)
             .clientTrackingRange(32)
-            .build(SHADE_KEY.toString()));
+            .build(Shade.NAME));
 
 
     public static void register(IEventBus eventBus) {

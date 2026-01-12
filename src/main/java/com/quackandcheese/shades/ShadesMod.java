@@ -2,6 +2,7 @@ package com.quackandcheese.shades;
 
 import com.quackandcheese.shades.data.ModDataAttachments;
 import com.quackandcheese.shades.entity.ModEntities;
+import com.quackandcheese.shades.particle.ModParticles;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -21,25 +22,11 @@ public class ShadesMod {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public ShadesMod(IEventBus modEventBus, ModContainer modContainer) {
-        modEventBus.addListener(this::commonSetup);
-
-        // Register ourselves for server and other game events we are interested in.
-        // Note that this is necessary if and only if we want *this* class (shades) to respond directly to events.
-        // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
-        NeoForge.EVENT_BUS.register(this);
-
         ModEntities.register(modEventBus);
         ModDataAttachments.register(modEventBus);
+        ModParticles.register(modEventBus);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
-    }
-
-    private void commonSetup(FMLCommonSetupEvent event) {
-    }
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
     }
 }

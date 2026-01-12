@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 public class ShadeRenderer extends MobRenderer<Shade, PlayerModel<Shade>> {
 
     public ShadeRenderer(EntityRendererProvider.Context context) {
-        super(context, new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), false), 0.5f);
+        super(context, new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), true), 0.5f);
     }
 
     @Override
