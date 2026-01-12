@@ -42,7 +42,7 @@ public class ModEvents {
         // died, summon shade.
         Shade shade = ModEntities.SHADE.get().create(level);
         if (shade != null) {
-            shade.moveTo(player.getEyePosition());
+            shade.moveTo(player.position().x, player.position().y + 0.5d, player.position().z);
             shade.setAssociatedPlayer(player.getUUID());
             shade.setStoredInventory(player.getInventory().save(new ListTag()));
             level.addFreshEntity(shade);

@@ -5,5 +5,6 @@
   "shades.configuration.section.shades.common.toml": "Common Options",
   "shades.configuration.section.shades.common.toml.title": "Common Options",
   "shades.configuration.allowMultipleShades": "Allow Multiple Shades",
-  "shades.configuration.dropItemsFromReplacedShade": "Drop Items from Replaced Shade"
+  "shades.configuration.dropItemsFromReplacedShade": "Drop Items from Replaced Shade",
+  "shades.configuration.onlyOwnerCanDamageShade": "Only Owner Can Damage Shade"
 }

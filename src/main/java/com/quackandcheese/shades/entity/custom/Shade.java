@@ -1,11 +1,13 @@
 package com.quackandcheese.shades.entity.custom;
 
+import com.quackandcheese.shades.Config;
 import com.quackandcheese.shades.data.ModDataAttachments;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -118,18 +120,24 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     @Override
     public boolean isInvulnerableTo(DamageSource source) {
-        var damageSourceEntity = source.getEntity();
-        if (damageSourceEntity == null)
+        if (!Config.ONLY_OWNER_CAN_DAMAGE_SHADE.get())
             return super.isInvulnerableTo(source);
 
-        if (isAssociatedPlayerOnline()) { // ensures associated player is online
-            UUID damageCauser = damageSourceEntity.getUUID();
-            if (!damageCauser.equals(associatedPlayer)) {
-                return true; // only allow associated player to damage
-            }
+        var attacker = source.getEntity();
+
+        if (attacker == null) {
+            return true;
         }
 
-        return super.isInvulnerableTo(source);
+        if (attacker instanceof TraceableEntity traceableEntity) {
+            attacker = traceableEntity.getOwner();
+        }
+
+        if (attacker instanceof ServerPlayer) {
+            return !attacker.getUUID().equals(this.associatedPlayer);
+        }
+
+        return true;
     }
 
     @Override
@@ -205,7 +213,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
             LivingEntity target = Shade.this.getTarget();
             if (target != null) {
                 Vec3 targetPos = target.trackingPosition();
-                Shade.this.moveControl.setWantedPosition(targetPos.x, targetPos.y, targetPos.z, 1.0);
+                Shade.this.moveControl.setWantedPosition(targetPos.x, targetPos.y + 0.5d, targetPos.z, 1.0);
             }
 
             //Shade.this.playSound(SoundEvents.VEX_CHARGE, 1.0F, 1.0F);
@@ -224,7 +232,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
                     double stopDistSq = Shade.this.distanceToSqr(target);
                     if (stopDistSq < 9.0) {
                         Vec3 targetPos = target.trackingPosition();
-                        Shade.this.moveControl.setWantedPosition(targetPos.x, targetPos.y, targetPos.z, 1.0);
+                        Shade.this.moveControl.setWantedPosition(targetPos.x, targetPos.y + 0.5d, targetPos.z, 1.0);
                     }
                 }
                 this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
