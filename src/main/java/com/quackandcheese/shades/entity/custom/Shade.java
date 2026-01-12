@@ -8,6 +8,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -69,17 +70,27 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     @Override
     public void writeSpawnData(RegistryFriendlyByteBuf buf) {
-        // TODO: figure out how to sync stored inventory
         buf.writeUUID(associatedPlayer);
         buf.writeInt(storedExperience);
-        ShadesMod.LOGGER.info("---- writeSpawnData");
+
+        CompoundTag tag = new CompoundTag();
+        if (storedInventory != null) {
+            tag.put("StoredInventory", storedInventory);
+        }
+        buf.writeNbt(tag);
     }
 
     @Override
     public void readSpawnData(RegistryFriendlyByteBuf buf) {
         associatedPlayer = buf.readUUID();
         storedExperience = buf.readInt();
-        ShadesMod.LOGGER.info("---- readSpawnData");
+
+        CompoundTag tag = buf.readNbt();
+        if (tag != null && tag.contains("StoredInventory", Tag.TAG_LIST)) {
+            storedInventory = tag.getList("StoredInventory", Tag.TAG_COMPOUND);
+        } else {
+            storedInventory = new ListTag();
+        }
     }
 
     @Override
