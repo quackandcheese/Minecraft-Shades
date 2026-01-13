@@ -1,0 +1,33 @@
+{
+  "shade_hurt": {
+    "subtitle": "sounds.shades.shade_hurt",
+    "sounds": [
+      "shades:shade_hurt"
+    ]
+  },
+  "shade_attack": {
+    "subtitle": "sounds.shades.shade_attack",
+    "sounds": [
+      "shades:shade_attack"
+    ]
+  },
+  "shade_flying": {
+    "subtitle": "sounds.shades.shade_flying",
+    "sounds": [
+      {
+        "name": "shades:shade_flying",
+        "stream": true,
+        "attenuation_distance": 12
+      }
+    ]
+  },
+  "shade_music": {
+    "sounds": [
+      {
+        "name": "shades:shade_music",
+        "stream": true,
+        "attenuation_distance": 24
+      }
+    ]
+  }
+}

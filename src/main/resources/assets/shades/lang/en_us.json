@@ -1,11 +1,14 @@
 {
   "entity.shades.shade": "Shade",
   "entity.shades.shade.named": "Shade of %s",
-  "shades.configuration.title": "Shades Configs",
-  "shades.configuration.section.shades.common.toml": "Common Options",
-  "shades.configuration.section.shades.common.toml.title": "Common Options",
+  "sounds.shades.shade_hurt": "Shade hurts",
+  "sounds.shades.shade_attack": "Shade attacks",
+  "sounds.shades.shade_flying": "Shade murmurs",
+  "shades.configuration.title": "Shades Config",
   "shades.configuration.allowMultipleShades": "Allow Multiple Shades",
   "shades.configuration.dropItemsFromReplacedShade": "Drop Items from Replaced Shade",
   "shades.configuration.onlyOwnerCanDamageShade": "Only Owner Can Damage Shade",
-  "shades.configuration.spawnShadesInPeaceful": "Spawn Shades in Peaceful Difficulty"
+  "shades.configuration.spawnShadesInPeaceful": "Spawn Shades in Peaceful Difficulty",
+  "shades.configuration.playShadeMusic": "Play Shade Music",
+  "shades.configuration.showShadeOwnerNames": "Show Shade Owner Names"
 }
