@@ -10,6 +10,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.GameRules;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -45,6 +46,12 @@ public class ModEvents {
                 shade.moveTo(player.position().x, player.position().y + 0.5d, player.position().z);
                 shade.setAssociatedPlayer(player.getUUID());
                 shade.setStoredInventory(player.getInventory().save(new ListTag()));
+
+                float playerMax = player.getMaxHealth();
+                shade.getAttribute(Attributes.MAX_HEALTH)
+                        .setBaseValue(playerMax);
+                shade.setHealth(playerMax);
+
                 level.addFreshEntity(shade);
 
                 player.setData(

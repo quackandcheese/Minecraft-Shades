@@ -18,6 +18,7 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
@@ -66,7 +67,7 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 14d)
+                .add(Attributes.MAX_HEALTH, 20d)
                 .add(Attributes.ATTACK_DAMAGE, 4d)
                 .add(Attributes.FOLLOW_RANGE, 10d);
     }
@@ -330,6 +331,10 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
                         Shade.this.moveControl.setWantedPosition(targetPos.x, targetPos.y + 0.5d, targetPos.z, 1.0);
                     }
                 }
+
+                if (!ItemStack.isSameItemSameComponents(getItemInHand(InteractionHand.MAIN_HAND), target.getMainHandItem()))
+                    setItemInHand(InteractionHand.MAIN_HAND, target.getMainHandItem().copy());
+
                 this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
                 this.checkAndPerformAttack(target);
             }

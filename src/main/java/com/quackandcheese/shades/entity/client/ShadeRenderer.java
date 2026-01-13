@@ -10,6 +10,8 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
+import net.minecraft.client.renderer.entity.layers.PlayerItemInHandLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
@@ -23,6 +25,7 @@ public class ShadeRenderer extends MobRenderer<Shade, ShadePlayerModel<Shade>> {
 
     public ShadeRenderer(EntityRendererProvider.Context context) {
         super(context, new ShadePlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), true), 0.5f);
+        this.addLayer(new ItemInHandLayer<>(this, context.getItemInHandRenderer()));
         this.addLayer(new ShadeEyesLayer(this));
     }
 
