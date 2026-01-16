@@ -5,10 +5,6 @@ import com.quackandcheese.shades.ShadesMod;
 import com.quackandcheese.shades.data.ModDataAttachments;
 import com.quackandcheese.shades.particle.ModParticles;
 import com.quackandcheese.shades.sound.ModSounds;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
-import net.minecraft.client.resources.sounds.SoundInstance;
-import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -18,11 +14,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -134,13 +130,6 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         }
 
         updateName();
-
-        if (level().isClientSide) {
-            SoundManager soundManager = Minecraft.getInstance().getSoundManager();
-            soundManager.play(new ShadeAmbientSound(this, ModSounds.SHADE_FLYING.get()));
-            if (Config.PLAY_SHADE_MUSIC.get())
-                soundManager.play(new ShadeAmbientSound(this, ModSounds.SHADE_MUSIC.get()));
-        }
     }
 
     @Override
@@ -187,6 +176,9 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
         if (!Config.ONLY_OWNER_CAN_DAMAGE_SHADE.get())
             return super.isInvulnerableTo(source);
 
+        if (source.is(DamageTypes.GENERIC_KILL))
+            return false;
+
         var attacker = source.getEntity();
 
         if (attacker == null) {
@@ -208,18 +200,12 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
     public void die(DamageSource damageSource) {
         super.die(damageSource);
 
+        if (level() instanceof ServerLevel)
+            makeDeathParticles();
+
         Entity owner = getOwner();
-        if (owner == null) {
+        if (owner == null)
             return;
-        }
-
-        Optional<UUID> shadeUuid = owner
-                .getData(ModDataAttachments.SHADE)
-                .shadeUuid();
-
-        if (shadeUuid.isEmpty() || !shadeUuid.get().equals(getUUID())) {
-            return;
-        }
 
         // Clear the shade from the owner
         owner.setData(
@@ -232,9 +218,6 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
             ShadesMod.LOGGER.info("RESTORING EXPERIENCE");
             player.giveExperienceLevels(storedExperience);
         }
-
-        if (level() instanceof ServerLevel)
-            makeDeathParticles();
     }
 
     @Override
@@ -417,44 +400,6 @@ public class Shade extends Monster implements TraceableEntity, IEntityWithComple
                     }
                 }
             }
-        }
-    }
-
-    class ShadeAmbientSound extends AbstractTickableSoundInstance {
-        private final Shade shade;
-
-        public ShadeAmbientSound(Shade shade, SoundEvent soundEvent) {
-            super(soundEvent, SoundSource.HOSTILE, SoundInstance.createUnseededRandom());
-            this.shade = shade;
-
-            this.looping = true;
-            this.delay = 0;
-            this.volume = 1.0f;
-            this.pitch = 1.0f;
-            this.attenuation = Attenuation.LINEAR;
-
-            this.x = shade.getX();
-            this.y = shade.getY();
-            this.z = shade.getZ();
-        }
-
-        @Override
-        public void tick() {
-            if (!Config.PLAY_SHADE_MUSIC.get()) {
-
-                stop();
-                return;
-            }
-
-            if (shade.isRemoved() || !shade.isAlive()) {
-                this.volume -= 0.1f;
-                if (this.volume <= 0f) stop();
-                return;
-            }
-
-            this.x = shade.getX();
-            this.y = shade.getY();
-            this.z = shade.getZ();
         }
     }
 }
