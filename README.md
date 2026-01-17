@@ -5,6 +5,11 @@ Instead of dropping all of your items when you die, a 'Shade' spawns at your dea
 
 A Shades' health matches the value of your max health when you died, and will attack you with the same item/weapon as the one you are currently holding. If you die before killing your Shade, a new Shade appears at the new death location and the old one disappears, along with your old Shade dropping its loot at your old death location (configurable to be more similar to Hollow Knight, where you lose your old loot forever).
 
+## Links
+
+- [**Modrinth**](https://modrinth.com/mod/shades)
+- [**CurseForge**](https://www.curseforge.com/minecraft/mc-mods/shades-hollow-knight)
+
 ## Credits
 
 ### Developer
